@@ -1,24 +1,26 @@
 # Sequenciador fixo
 
-Neste trabalho de Sistemas Distribuídos, vou implementar um sequenciador fixo usando Dart e Flutter para Windows. Minha ideia é fazer um chat simples em que os participantes enviam mensagens e todos mostram o histórico na mesma ordem.
+Neste trabalho de Sistemas Distribuídos, vou implementar uma demonstração simples do sequenciador fixo usando Dart e Flutter para Windows. Cada cliente terá um botão para gerar um evento, e todos vão mostrar os eventos na mesma ordem definida pelo servidor.
 
 Por enquanto, deixei apenas a estrutura das pastas e os arquivos vazios. O projeto ainda não executa; vou preencher o código e as configurações nas próximas etapas.
 
 ## Como vai funcionar
 
-Vou usar um servidor como sequenciador e três clientes, identificados como P1, P2 e P3. O servidor será um programa Dart separado, e cada cliente terá uma janela Flutter.
+Vou usar um servidor como sequenciador e três clientes, identificados como P1, P2 e P3. O servidor será um programa Dart no terminal. Vou abrir três instâncias do mesmo aplicativo Flutter, uma para cada cliente.
 
-Quando um cliente enviar uma mensagem, o servidor vai atribuir um número de sequência e distribuir a mensagem para todos, inclusive para quem enviou. Cada cliente vai guardar as mensagens recebidas e entregar ao histórico seguindo essa numeração, sem pular posições.
+Ao clicar em **Gerar evento**, o cliente vai criar automaticamente um evento identificado, como `P2:1`, e enviar ao servidor. O sequenciador vai atribuir um número global e distribuir o evento para os três clientes, inclusive para quem o gerou. Cada cliente vai registrar o evento na lista seguindo essa numeração, sem pular posições.
 
 ```text
-P1, P2 e P3 → sequenciador → mensagens numeradas para P1, P2 e P3
+P1, P2 e P3 → sequenciador → eventos numerados para P1, P2 e P3
 ```
+
+Por exemplo, se eu clicar primeiro em P2 e depois em P1, o servidor poderá ordenar `1 — Evento de P2` e `2 — Evento de P1`. O que importa é que todos entreguem a ordem atribuída pelo sequenciador; cliques quase simultâneos podem chegar ao servidor em outra ordem.
 
 ## Comunicação e interface
 
-Vou fazer a comunicação por TCP, com mensagens JSON separadas por quebra de linha. Os pedidos vão informar a identificação da mensagem e o texto; a distribuição vai incluir também a origem e o número global de sequência.
+Vou fazer a comunicação por TCP, com mensagens JSON separadas por quebra de linha. O pedido vai identificar o evento; a distribuição também vai informar a origem e o número global de sequência. Inicialmente, vou executar tudo no mesmo computador, usando o endereço `127.0.0.1` e a porta `5000`.
 
-Na interface, quero mostrar o identificador do processo, o estado da conexão, o campo de envio, o histórico entregue, o buffer e o próximo número esperado.
+Vou deixar a interface com o identificador do cliente, um botão **Gerar evento** e uma lista com o número de sequência e a origem dos eventos entregues. Também vou mostrar o estado da conexão. A ordenação e o buffer ficarão na lógica do programa, sem painéis extras na primeira versão.
 
 Na primeira versão, vou conectar os três clientes antes de começar. Se alguém desconectar, vou encerrar a rodada e reiniciar os processos. Não vou implementar recuperação automática nessa etapa.
 
@@ -33,7 +35,7 @@ servidor/
   pubspec.yaml
 cliente/
   lib/main.dart
-  lib/models/mensagem.dart
+  lib/models/evento.dart
   lib/services/conexao.dart
   lib/controllers/cliente_controller.dart
   lib/screens/cliente_screen.dart
@@ -46,10 +48,10 @@ docs/imagens/
 
 Vou precisar do Flutter com suporte a Windows e do Dart. Ainda vou configurar os arquivos `pubspec.yaml`, as dependências e os arquivos de suporte do aplicativo Windows. Depois vou registrar aqui as versões usadas e os comandos exatos para instalar e executar.
 
-Vou desenvolver primeiro o servidor e a troca de mensagens, depois a ordenação nos clientes e a interface. Para testar, vou enviar mensagens pelos três participantes e conferir se os históricos ficam iguais.
+Vou desenvolver primeiro o servidor e a troca de mensagens, depois a ordenação nos clientes e a interface. Para testar, vou gerar eventos pelos três participantes, inclusive com cliques próximos, e conferir se as listas ficam iguais e os números não se repetem.
 
 ## Relatório e apresentação
 
 Vou completar este README com os procedimentos de instalação, configuração e execução, os resultados dos testes e imagens da interface. Também vou incluir trechos do código mostrando a identificação dos processos, o envio, a recepção e a ordenação das mensagens.
 
-Na apresentação, quero mostrar os quatro processos funcionando e explicar a principal limitação: se o sequenciador parar, as novas mensagens deixam de ser ordenadas.
+Na apresentação, quero mostrar os quatro processos funcionando, gerar eventos nos três clientes e comparar suas listas. Também vou explicar a principal limitação: se o sequenciador parar, os novos eventos deixam de ser ordenados.
