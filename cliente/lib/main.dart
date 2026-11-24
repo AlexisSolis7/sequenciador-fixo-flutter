@@ -29,6 +29,9 @@ class _TelaClienteState extends State<TelaCliente> {
   final List<String> eventos = [];
   final Conexao conexao = Conexao();
   bool conectado = false;
+
+  bool rodadaPronta = false;
+  int proximoEventoLocal = 1;
   String textoStatus = 'Desconectado';
 
   Future<void> conectarAoServidor() async {
@@ -42,12 +45,32 @@ class _TelaClienteState extends State<TelaCliente> {
           conectado = true;
           textoStatus = 'Conectado como ${dados['cliente']}';
         });
+      } else if (dados['tipo'] == 'rodada_pronta') {
+        setState(() {
+          rodadaPronta = true;
+          textoStatus = 'Os três clientes estão conectados';
+        });
       } else if (dados['tipo'] == 'erro') {
         setState(() {
           textoStatus = dados['mensagem'];
         });
+      } else if (dados['tipo'] == 'evento_ordenado') {
+        final numeroGlobal = dados['numeroGlobal'];
+        final idEvento = dados['idEvento'];
+
+        setState(() {
+          eventos.add('$numeroGlobal — $idEvento');
+        });
       }
     });
+  }
+
+  void gerarEvento() {
+    final idEvento = '$clienteSelecionado:$proximoEventoLocal'; // exemplo: idEvento = 'P2:1'; e depois no proximo clique: idEvento = 'P2:2';
+
+    conexao.enviar({'tipo': 'evento', 'cliente': clienteSelecionado, 'idEvento': idEvento});
+
+    proximoEventoLocal++;
   }
 
   @override
@@ -68,13 +91,15 @@ class _TelaClienteState extends State<TelaCliente> {
                   DropdownMenuItem(value: 'P2', child: Text('P2')),
                   DropdownMenuItem(value: 'P3', child: Text('P3')),
                 ],
-                onChanged: (novoCliente) {
-                  if (novoCliente != null) {
-                    setState(() {
-                      clienteSelecionado = novoCliente;
-                    });
-                  }
-                },
+                onChanged: conectado
+                    ? null
+                    : (novoCliente) {
+                        if (novoCliente != null) {
+                          setState(() {
+                            clienteSelecionado = novoCliente;
+                          });
+                        }
+                      },
               ),
               const SizedBox(height: 20),
 
@@ -92,7 +117,7 @@ class _TelaClienteState extends State<TelaCliente> {
               ),
               const SizedBox(height: 20),
 
-              ElevatedButton.icon(onPressed: null, icon: const Icon(Icons.add), label: const Text('Gerar evento')),
+              ElevatedButton.icon(onPressed: rodadaPronta ? gerarEvento : null, icon: const Icon(Icons.add), label: const Text('Gerar evento')),
               const Divider(height: 40),
 
               const Text(
@@ -112,7 +137,7 @@ class _TelaClienteState extends State<TelaCliente> {
                         itemCount: eventos.length, //quantidade de linhas ou eventos como vc quiser dizer
                         itemBuilder: (context, indice) {
                           //aqui ele constroi a lista basicamente
-                          return ListTile(leading: Text('${indice + 1}'), title: Text(eventos[indice]));
+                          return ListTile(title: Text(eventos[indice]));
                         }, //leading e o conteudo inicial da linha
                       ),
               ),

@@ -12,6 +12,8 @@ Future<void> main() async {
   final clientes = <String, WebSocket>{};
   final identificadoresPermitidos = {'P1', 'P2', 'P3'};
 
+  int proximoNumeroGlobal = 1;
+
   await for (final requisicao in servidor) {
     // para cada requisicao que chegar pelo servidor, execute o bloco
 
@@ -30,6 +32,30 @@ Future<void> main() async {
 
           final tipo = dados['tipo'];
           final identificador = dados['cliente'];
+
+          if (tipo == 'evento') {
+            final idEvento = dados['idEvento'];
+
+            final numeroGlobal = proximoNumeroGlobal; //incrementamos o numeroGlobal mas antes guardamos em numeroGlobal que representa esse momento
+            proximoNumeroGlobal++;
+
+            final eventoOrdenado = jsonEncode({
+              //odenando para enviar aos clientes depois
+              'tipo': 'evento_ordenado',
+              'numeroGlobal': numeroGlobal,
+              'cliente': identificador,
+              'idEvento': idEvento,
+            });
+
+            for (final clienteConectado in clientes.values) {
+              //enviamos o json para todos os clientes
+              clienteConectado.add(eventoOrdenado);
+            }
+
+            print('Evento global $numeroGlobal: $idEvento recebido de $identificador');
+
+            return;
+          }
 
           if (tipo != 'registro' || identificador is! String) {
             cliente.add(jsonEncode({'tipo': 'erro', 'mensagem': 'Mensagem de registro inválida'}));
@@ -53,6 +79,15 @@ Future<void> main() async {
           cliente.add(jsonEncode({'tipo': 'registro_ok', 'cliente': identificador}));
 
           print('$identificador registrado');
+          if (clientes.length == 3) {
+            final aviso = jsonEncode({'tipo': 'rodada_pronta'});
+
+            for (final clienteConectado in clientes.values) {
+              clienteConectado.add(aviso);
+            }
+
+            print('Os três clientes estão conectados. Rodada pronta!');
+          }
         },
         onDone: () {
           if (identificadorRegistrado != null) {
