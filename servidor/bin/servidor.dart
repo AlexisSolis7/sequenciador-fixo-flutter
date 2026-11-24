@@ -34,6 +34,12 @@ Future<void> main() async {
           final identificador = dados['cliente'];
 
           if (tipo == 'evento') {
+            // só aceita evento de uma conexão que já se registrou como P1, P2 ou P3
+            if (identificadorRegistrado == null) {
+              cliente.add(jsonEncode({'tipo': 'erro', 'mensagem': 'Registre-se antes de gerar eventos'}));
+              return;
+            }
+
             final idEvento = dados['idEvento'];
 
             final numeroGlobal = proximoNumeroGlobal; //incrementamos o numeroGlobal mas antes guardamos em numeroGlobal que representa esse momento
@@ -43,7 +49,7 @@ Future<void> main() async {
               //odenando para enviar aos clientes depois
               'tipo': 'evento_ordenado',
               'numeroGlobal': numeroGlobal,
-              'cliente': identificador,
+              'cliente': identificadorRegistrado, // quem enviou é definido pelo registro da conexão, não pela mensagem
               'idEvento': idEvento,
             });
 
@@ -52,7 +58,7 @@ Future<void> main() async {
               clienteConectado.add(eventoOrdenado);
             }
 
-            print('Evento global $numeroGlobal: $idEvento recebido de $identificador');
+            print('Evento global $numeroGlobal: $idEvento recebido de $identificadorRegistrado');
 
             return;
           }
