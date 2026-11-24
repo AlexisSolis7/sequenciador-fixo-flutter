@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
+import 'services/conexao.dart';
 
 void main() {
   runApp(const MeuApp());
@@ -23,6 +27,28 @@ class TelaCliente extends StatefulWidget {
 class _TelaClienteState extends State<TelaCliente> {
   String clienteSelecionado = 'P1';
   final List<String> eventos = [];
+  final Conexao conexao = Conexao();
+  bool conectado = false;
+  String textoStatus = 'Desconectado';
+
+  Future<void> conectarAoServidor() async {
+    await conexao.conectar(clienteSelecionado);
+
+    conexao.mensagens?.listen((mensagem) {
+      final dados = jsonDecode(mensagem);
+
+      if (dados['tipo'] == 'registro_ok') {
+        setState(() {
+          conectado = true;
+          textoStatus = 'Conectado como ${dados['cliente']}';
+        });
+      } else if (dados['tipo'] == 'erro') {
+        setState(() {
+          textoStatus = dados['mensagem'];
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +76,18 @@ class _TelaClienteState extends State<TelaCliente> {
                   }
                 },
               ),
+              const SizedBox(height: 20),
+
+              ElevatedButton(onPressed: conectado ? null : conectarAoServidor, child: const Text('Conectar')),
 
               const SizedBox(height: 20),
 
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.circle, color: Colors.red, size: 14),
+                  Icon(Icons.circle, color: conectado ? Colors.green : Colors.red, size: 14),
                   SizedBox(width: 8),
-                  Text('Desconectado', style: TextStyle(color: Colors.black)),
+                  Text(textoStatus, style: TextStyle(color: Colors.black)),
                 ],
               ),
               const SizedBox(height: 20),
