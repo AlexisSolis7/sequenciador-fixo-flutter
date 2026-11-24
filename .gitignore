@@ -1,0 +1,6 @@
+# Dart / Flutter
+.dart_tool/
+build/
+
+# Sistema
+.DS_Store
