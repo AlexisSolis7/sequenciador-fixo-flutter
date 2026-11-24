@@ -33,6 +33,8 @@ class _TelaClienteState extends State<TelaCliente> {
   bool rodadaPronta = false;
   int proximoEventoLocal = 1;
   String textoStatus = 'Desconectado';
+  int proximoNumeroEsperado = 1;
+  final Map<int, String> bufferEventos = {}; // vai guarda os eventos pelo número global
 
   Future<void> conectarAoServidor() async {
     await conexao.conectar(clienteSelecionado);
@@ -57,9 +59,15 @@ class _TelaClienteState extends State<TelaCliente> {
       } else if (dados['tipo'] == 'evento_ordenado') {
         final numeroGlobal = dados['numeroGlobal'];
         final idEvento = dados['idEvento'];
-
         setState(() {
-          eventos.add('$numeroGlobal — $idEvento');
+          bufferEventos[numeroGlobal] = idEvento;
+
+          while (bufferEventos.containsKey(proximoNumeroEsperado)) {
+            // basicamente ele percorre o buffer e containsKey=contem essa chave?
+            final idEventoPronto = bufferEventos.remove(proximoNumeroEsperado)!;
+            eventos.add('$proximoNumeroEsperado — $idEventoPronto');
+            proximoNumeroEsperado++;
+          }
         });
       }
     });
