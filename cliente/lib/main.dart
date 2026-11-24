@@ -37,7 +37,15 @@ class _TelaClienteState extends State<TelaCliente> {
   final Map<int, String> bufferEventos = {}; // vai guarda os eventos pelo número global
 
   Future<void> conectarAoServidor() async {
-    await conexao.conectar(clienteSelecionado);
+    try {
+      await conexao.conectar(clienteSelecionado);
+    } catch (_) {
+      // o servidor não está rodando ou não respondeu
+      setState(() {
+        textoStatus = 'Servidor indisponível';
+      });
+      return;
+    }
 
     conexao.mensagens?.listen((mensagem) {
       final dados = jsonDecode(mensagem);

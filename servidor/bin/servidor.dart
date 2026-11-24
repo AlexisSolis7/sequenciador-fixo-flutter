@@ -28,7 +28,14 @@ Future<void> main() async {
 
       cliente.listen(
         (mensagem) {
-          final dados = jsonDecode(mensagem) as Map<String, dynamic>;
+          Map<String, dynamic> dados;
+          try {
+            dados = jsonDecode(mensagem) as Map<String, dynamic>;
+          } catch (_) {
+            // mensagem que não é um JSON válido: avisa o cliente e ignora
+            cliente.add(jsonEncode({'tipo': 'erro', 'mensagem': 'Mensagem inválida'}));
+            return;
+          }
 
           final tipo = dados['tipo'];
           final identificador = dados['cliente'];

@@ -47,3 +47,9 @@ flutter run -d chrome --web-port=3000
 ```
 
 Depois abro `http://localhost:3000` em três abas e conecto uma como P1, outra como P2 e outra como P3.
+
+## Limitações
+
+- O tratamento de desconexões ficou fora do escopo. Se um cliente desconectar e conectar de novo, ele volta a esperar o evento #1, enquanto o servidor já está em um número maior, e por isso não mostra nenhum evento. Para repetir a demonstração, reinicie o servidor e as três abas.
+- O servidor escuta apenas em `127.0.0.1`, então o servidor e os clientes precisam rodar no mesmo computador.
+- O buffer de cada cliente segue o algoritmo do sequenciador fixo: um evento só é mostrado quando todos os números anteriores já chegaram. Como o WebSocket funciona sobre TCP e o servidor envia os eventos em ordem, na nossa demonstração eles chegam sempre em sequência e o buffer não precisa segurar nenhum evento.
